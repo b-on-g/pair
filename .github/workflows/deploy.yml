@@ -1,0 +1,40 @@
+name: $bog_pair
+
+permissions: write-all
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: hyoo-ru/mam_build@master2
+      with:
+        package: 'bog/pair'
+        meta: |
+          bog/qr https://github.com/b-on-g/qr.git
+
+    - name: Cache-bust the bundle
+      if: github.ref == 'refs/heads/main'
+      run: |
+        set -euo pipefail
+        stamp="${GITHUB_SHA::7}"
+        file="bog/pair/-/index.html"
+        sed -i "s|src=\"web.js\"|src=\"web.js?v=$stamp\"|" "$file"
+        grep -q "web.js?v=$stamp" "$file"
+
+    - uses: hyoo-ru/gh-deploy@v4.4.1
+      if: github.ref == 'refs/heads/main'
+      with:
+        folder: 'bog/pair/-'

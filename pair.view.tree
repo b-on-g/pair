@@ -1,0 +1,70 @@
+$bog_pair $mol_page
+	title \Пара без сервера
+	plugins /
+		<= Theme $mol_theme_auto
+	tools /
+		<= Reset $mol_button_minor
+			title \Сброс
+			click? <=> reset? null
+	body /
+		<= Status $mol_paragraph
+			title <= status \
+		<= Actions $mol_row
+			sub <= actions /
+				<= Invite $mol_button_major
+					title \Пригласить
+					click? <=> invite? null
+				<= Scan $mol_check
+					title \Сканировать QR
+					checked? <=> scanning? false
+				<= Nfc_read $mol_button_minor
+					title \Прочитать NFC-метку
+					click? <=> nfc_read? null
+				<= Stun $mol_check_box
+					title \STUN (если есть интернет)
+					checked? <=> stun? false
+		<= Camera $mol_video_camera
+			facing \environment
+			muted true
+		<= Code_block $mol_list
+			rows /
+				<= Code_label $mol_paragraph
+					title <= code_label \
+				<= Code_qr $bog_qr
+					uri <= code_out \
+					error_correction \L
+				<= Code_tools $mol_row
+					sub <= code_tools /
+						<= Code_copy $mol_button_copy
+							title \Копировать код
+							text <= code_out
+						<= Nfc_write $mol_button_minor
+							title \Записать на NFC-метку
+							click? <=> nfc_write? null
+		<= Paste_block $mol_list
+			rows /
+				<= Paste $mol_textarea
+					hint \Или вставь код сюда
+					value? <=> paste? \
+				<= Paste_accept $mol_button_minor
+					title \Принять код
+					click? <=> paste_accept? null
+		<= Chat $mol_row
+			sub /
+				<= Draft $mol_string
+					hint \Сообщение
+					value? <=> draft? \
+					submit? <=> send? null
+				<= Send $mol_button_major
+					title \Отправить
+					click? <=> send? null
+		<= Messages $mol_list
+			rows <= message_rows /
+		<= Log_title $mol_paragraph
+			title \Журнал
+		<= Log $mol_list
+			rows <= log_rows /
+	Message* $mol_paragraph
+		title <= message* \
+	Log_line* $mol_paragraph
+		title <= log_line* \
