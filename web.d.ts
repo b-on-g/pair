@@ -4179,6 +4179,8 @@ declare namespace $.$$ {
         note(text: string): void;
         fail(error: unknown): void;
         candidate_brief(line: string): string;
+        sdp_candidates(sdp?: string): string[];
+        sdp_note(who: string, sdp?: string): void;
         media_unlock(): Promise<void>;
         rtc_make(): RTCPeerConnection;
         gather(rtc: RTCPeerConnection): Promise<void>;

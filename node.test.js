@@ -10009,7 +10009,21 @@ var $;
             candidate_brief(line) {
                 const parts = line.split(' ');
                 const type = parts[parts.indexOf('typ') + 1];
-                return `${type} ${parts[2]} ${parts[4]}`;
+                const address = parts[4];
+                const family = address.endsWith('.local') ? 'mdns' : address.includes(':') ? 'ipv6' : 'ipv4';
+                return `${type} ${parts[2]} ${family} ${address}:${parts[5]}`;
+            }
+            sdp_candidates(sdp = '') {
+                return sdp.split(/\r?\n/)
+                    .filter(line => line.startsWith('a=candidate:'))
+                    .map(line => line.slice(2));
+            }
+            sdp_note(who, sdp = '') {
+                const candidates = this.sdp_candidates(sdp);
+                if (!candidates.length)
+                    return this.note(`${who}: адресов нет`);
+                for (const line of candidates)
+                    this.note(`${who}: ${this.candidate_brief(line)}`);
             }
             async media_unlock() {
                 try {
@@ -10081,11 +10095,16 @@ var $;
                 const pair = reports.find(report => report.type === 'candidate-pair' && report.nominated && report.state === 'succeeded');
                 if (!pair)
                     return this.note('маршрут не найден в статистике');
-                const side = (id) => {
+                const side = (id, sdp = '') => {
                     const report = stats.get(id);
-                    return `${report?.candidateType} ${report?.protocol} ${report?.address ?? report?.ip ?? '?'}`;
+                    const port = String(report?.port ?? '');
+                    const line = this.sdp_candidates(sdp).find(line => line.split(' ')[5] === port);
+                    if (line)
+                        return this.candidate_brief(line);
+                    return `${report?.candidateType} ${report?.protocol} ${report?.address ?? report?.ip ?? '?'}:${port}`;
                 };
-                const route = `${side(pair.localCandidateId)} ⇄ ${side(pair.remoteCandidateId)}`;
+                const rtc = this.rtc;
+                const route = `${side(pair.localCandidateId, rtc.localDescription?.sdp)} ⇄ ${side(pair.remoteCandidateId, rtc.remoteDescription?.sdp)}`;
                 this.note('маршрут: ' + route);
                 this.status('Соединено: ' + route);
             }
@@ -10103,6 +10122,7 @@ var $;
             }
             async accept_run(code) {
                 const { kind, sdp } = await sdp_unpack(code.trim());
+                this.sdp_note('сосед', sdp);
                 if (kind === 'o') {
                     this.note('принято приглашение');
                     await this.media_unlock();
