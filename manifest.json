@@ -1,0 +1,10 @@
+{
+	"name": "bog_pair",
+	"short_name": "bog_pair",
+	"description": "",
+	"id": "bog_pair",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#000000",
+	"theme_color": "#000000"
+}
